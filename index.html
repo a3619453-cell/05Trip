@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#F5F0EB">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="關西七日">
+<title>關西七日 · 旅程</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#3D3A38;
+  --surface:rgba(255,255,255,0.06);
+  --surface-hover:rgba(255,255,255,0.10);
+  --surface-elevated:rgba(255,255,255,0.09);
+  --text:#F0EDE8;
+  --text-secondary:rgba(240,237,232,0.6);
+  --text-tertiary:rgba(240,237,232,0.35);
+  --accent:#D4875A;
+  --accent-glow:rgba(212,135,90,0.3);
+  --accent-dim:#B87348;
+  --border:rgba(255,255,255,0.08);
+  --border-light:rgba(255,255,255,0.05);
+  --radius:14px;
+  --radius-sm:10px;
+  --font:-apple-system,"PingFang TC","Hiragino Sans TC","Noto Sans TC",sans-serif;
+  --safe-bottom:env(safe-area-inset-bottom,16px);
+}
+
+html,body{
+  height:100%;font-family:var(--font);background:var(--bg);color:var(--text);
+  line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;top:0;left:0;right:0;height:280px;
+  background:radial-gradient(ellipse 80% 100% at 50% -20%, rgba(212,135,90,.12) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+.safe-top{padding-top:env(safe-area-inset-top,12px);position:relative;z-index:1}
+
+/* header */
+.header{padding:32px 24px 18px;position:relative}
+.header h1{font-size:34px;font-weight:700;letter-spacing:-0.8px;line-height:1.05;color:var(--text)}
+.header h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),#E8A87C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-date{font-size:13px;color:var(--text-secondary);margin-top:6px;letter-spacing:0.5px}
+.header-meta{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.meta-tag{
+  font-size:11px;padding:5px 14px;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text-secondary);font-weight:500;letter-spacing:0.2px;
+  backdrop-filter:blur(8px);
+}
+.meta-tag.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* tabs */
+.tab-scroll{padding:0 24px 16px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tab-scroll::-webkit-scrollbar{display:none}
+.tab-row{display:flex;gap:6px}
+.tab-btn{
+  flex:0 0 auto;padding:10px 20px;border:none;border-radius:9999px;
+  background:var(--surface);border:1px solid var(--border-light);
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+  cursor:pointer;white-space:nowrap;transition:all .3s cubic-bezier(.4,0,.2,1);
+  font-family:var(--font);backdrop-filter:blur(8px);
+}
+.tab-btn:hover{background:var(--surface-hover);color:var(--text);border-color:var(--border)}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 20px var(--accent-glow)}
+.tab-btn .tab-sub{font-size:10px;font-weight:400;opacity:0.55;display:block;margin-top:0}
+.tab-btn.active .tab-sub{opacity:0.8}
+
+/* main */
+.main{padding:8px 20px 120px;max-width:480px;margin:0 auto;position:relative;z-index:1}
+
+/* overview card */
+.overview-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:18px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:all .3s;
+}
+.overview-card.collapsed .overview-grid{display:none}
+.overview-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.overview-title{font-size:10px;font-weight:600;color:var(--text-tertiary);letter-spacing:1.5px;text-transform:uppercase}
+.overview-toggle{width:18px;height:18px;fill:var(--text-tertiary);transition:transform .25s;flex-shrink:0}
+.overview-card.collapsed .overview-toggle{transform:rotate(-90deg)}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:14px}
+.overview-item{padding:4px 0}
+.overview-item .label{font-size:10px;color:var(--text-tertiary);margin-bottom:1px}
+.overview-item .value{font-size:13px;font-weight:500;color:var(--text)}
+
+/* day section */
+.day{display:none;animation:fadeUp .35s cubic-bezier(.4,0,.2,1)}
+.day.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.day-head{display:flex;align-items:baseline;gap:12px;margin:22px 0 14px;padding-top:6px}
+.day-num{font-size:14px;font-weight:600;color:var(--accent);letter-spacing:0}
+.day-sub{font-size:14px;font-weight:500;color:var(--text)}
+.day-desc{font-size:12px;color:var(--text-tertiary);margin-left:auto}
+
+/* timeline */
+.timeline{position:relative;padding-left:0}
+.event{
+  position:relative;margin-bottom:6px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:16px 16px 16px 20px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  cursor:default;
+}
+.event:last-child{margin-bottom:0}
+.event:hover{background:var(--surface-hover);border-color:var(--border)}
+.event::before{
+  content:'';position:absolute;left:-1px;top:16px;bottom:16px;
+  width:3px;border-radius:2px;
+  background:var(--accent);opacity:0.5;
+  transition:opacity .25s;
+}
+.event:hover::before{opacity:1}
+.event.muted{opacity:0.5}
+.event.muted::before{background:var(--text-tertiary)}
+
+.event-time{
+  font-size:11px;font-weight:600;color:var(--accent);
+  letter-spacing:0.5px;margin-bottom:4px;
+  display:inline-block;padding:1px 8px;border-radius:4px;
+  background:rgba(212,135,90,0.1);
+}
+.event.muted .event-time{color:var(--text-tertiary);background:rgba(255,255,255,0.04)}
+.event-title{font-size:15px;font-weight:550;color:var(--text);line-height:1.35;letter-spacing:-0.1px}
+.event-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.55;margin-top:5px}
+.event-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.event-tag{
+  font-size:10px;padding:3px 9px;border-radius:6px;font-weight:500;
+  background:rgba(255,255,255,0.06);color:var(--text-secondary);
+  border:1px solid rgba(255,255,255,0.06);
+}
+.event-tag.pass{background:rgba(212,135,90,0.12);color:var(--accent);border-color:rgba(212,135,90,0.15)}
+.event-tag.cash{background:rgba(255,255,255,0.05);color:var(--text-secondary)}
+.event-tag.info{background:rgba(255,255,255,0.06);color:var(--text-secondary)}
+.event-tag.food{background:rgba(255,255,255,0.06);color:var(--text-secondary)}
+.event-tag.danger{background:rgba(200,80,60,0.15);color:#E89080;border-color:rgba(200,80,60,0.2)}
+
+/* day footer */
+.day-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 18px;margin:16px 0;
+  backdrop-filter:blur(12px);
+}
+.day-footer .left{font-size:12px;color:var(--text-secondary)}
+.day-footer .right{font-size:13px;font-weight:600;color:var(--accent)}
+
+/* notice */
+.notice{
+  background:rgba(212,135,90,0.08);border:1px solid rgba(212,135,90,0.12);
+  border-radius:var(--radius-sm);padding:13px 16px;margin:14px 0;
+  font-size:12.5px;color:var(--accent);line-height:1.55;
+  backdrop-filter:blur(8px);
+}
+.notice.warn{background:rgba(212,135,90,0.1);border-color:rgba(212,135,90,0.18)}
+
+/* plan switch */
+.weather-bar{display:flex;gap:8px;margin:16px 0}
+.weather-btn{
+  flex:1;padding:12px;border:1px solid var(--border);border-radius:9999px;
+  background:var(--surface);font-size:13px;font-weight:500;color:var(--text-secondary);
+  cursor:pointer;text-align:center;transition:all .25s;font-family:var(--font);
+  backdrop-filter:blur(8px);
+}
+.weather-btn:hover{background:var(--surface-hover);color:var(--text)}
+.weather-btn.active{
+  border-color:var(--accent);background:var(--accent);color:#fff;
+  box-shadow:0 4px 24px var(--accent-glow);
+}
+.plan{display:none;animation:fadeUp .3s ease}
+.plan.active{display:block}
+
+/* footer */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(61,58,56,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);padding:12px 0 calc(12px + var(--safe-bottom));
+  text-align:center;font-size:11px;color:var(--text-tertiary);z-index:10;
+}
+
+/* transitions */
+.event,.overview-card,.day-footer,.notice,.weather-btn,.tab-btn{will-change:transform,opacity}
+</style>
+</head>
+<body>
+
+<div class="safe-top">
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>關西·<em>七日</em></h1>
+      <div class="header-date">2026.5.24 – 5.30</div>
+    </div>
+  </div>
+  <div class="header-meta">
+  </div>
+</div>
+
+<div class="tab-scroll">
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="goDay('d1',this)">D1<span class="tab-sub">5.24 日</span></button>
+    <button class="tab-btn" onclick="goDay('d2',this)">D2<span class="tab-sub">5.25 一</span></button>
+    <button class="tab-btn" onclick="goDay('d3',this)">D3<span class="tab-sub">5.26 二</span></button>
+    <button class="tab-btn" onclick="goDay('d4',this)">D4<span class="tab-sub">5.27 三</span></button>
+    <button class="tab-btn" onclick="goDay('d5',this)">D5<span class="tab-sub">5.28 四</span></button>
+    <button class="tab-btn" onclick="goDay('d6',this)">D6<span class="tab-sub">5.29 五</span></button>
+    <button class="tab-btn" onclick="goDay('d7',this)">D7<span class="tab-sub">5.30 六</span></button>
+  </div>
+</div>
+</div>
+
+<div class="main">
+
+<div class="overview-card collapsed" id="overviewCard">
+  <div class="overview-header" onclick="toggleOverview()">
+    <div class="overview-title">行程總覽</div>
+    <svg class="overview-toggle" viewBox="0 0 20 20"><polyline points="6,8 10,12 14,8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="overview-grid">
+    <div class="overview-item"><div class="label">出發</div><div class="value">CX564 · 5.24</div></div>
+    <div class="overview-item"><div class="label">返程</div><div class="value">CX565 · 5.30</div></div>
+    <div class="overview-item"><div class="label">交通券</div><div class="value">關西&廣島 Pass 5日（D1–D5）</div></div>
+    <div class="overview-item"><div class="label">前段住宿</div><div class="value">新大阪 D1–D3</div></div>
+    <div class="overview-item"><div class="label">後段住宿</div><div class="value">堺筋本町 D5–D7</div></div>
+    <div class="overview-item"><div class="label">行李策略</div><div class="value">D4 退房寄放原飯店</div></div>
+  </div>
+</div>
+
+<section id="d1" class="day active">
+  <div class="day-head"><span class="day-num">D1</span><span class="day-sub">抵達</span><span class="day-desc">KIX ⮕ 新大阪</span></div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">14:50</div><div class="event-title">CX564 抵達關西機場</div><div class="event-desc">第 1 航廈入境，審查 + 行李約 40–50 分鐘。入關前可先填妥 <a href="https://vjw-lp.digital.go.jp/" target="_blank" style="color:var(--accent);text-decoration:underline">Visit Japan Web</a></div><div class="event-tags"><span class="event-tag info">航班</span></div></div>
+    <div class="event"><div class="event-time">15:40</div><div class="event-title">兌換 JR Pass & 劃位</div><div class="event-desc">JR 關西機場站綠色窗口，兌換 5 日券並劃定指定席</div><div class="event-tags"><span class="event-tag info">KIX 1F 2F</span></div></div>
+    <div class="event"><div class="event-time">16:00</div><div class="event-title">Haruka 特急 ⮕ 新大阪</div><div class="event-desc">關西機場直達新大阪，約 75 分鐘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">17:30</div><div class="event-title">抵達飯店</div><div class="event-desc">步行或短程接駁至飯店，辦理入住</div></div>
+    <div class="event"><div class="event-time">18:30</div><div class="event-title">晚餐 & 周邊散步</div><div class="event-desc">新大阪站周邊商場（EST、友都八喜）覓食</div><div class="event-tags"><span class="event-tag cash">約 ¥1,500–2,500/人</span></div></div>
+  </div>
+  <div class="day-footer"><span class="left">步調 · 輕鬆</span><span class="right">休息調整時差</span></div>
+</section>
+
+<section id="d2" class="day">
+  <div class="day-head"><span class="day-num">D2</span><span class="day-sub">姬路 & 倉敷</span><span class="day-desc">Pass 第 1 日</span></div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">07:50</div><div class="event-title">飯店早餐</div><div class="event-desc">吃飽再出發</div></div>
+    <div class="event"><div class="event-time">08:20</div><div class="event-title">新大阪 ⮕ 姬路</div><div class="event-desc">山陽新幹線のぞみ，約 28 分，08:48 抵達。Pass 可搭乘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">08:50</div><div class="event-title">姬路城 & 好古園</div><div class="event-desc">日本第一名城。連好古園約 2.5 小時</div><div class="event-tags"><span class="event-tag cash">¥1,040/人（聯票）</span></div></div>
+    <div class="event"><div class="event-time">12:00</div><div class="event-title">姬路午餐</div><div class="event-desc">車站或城下町用餐，推薦鰻魚飯或姬路おでん</div><div class="event-tags"><span class="event-tag food">約 ¥1,000–1,500/人</span></div></div>
+    <div class="event"><div class="event-time">13:00</div><div class="event-title">姬路 ⮕ 倉敷</div><div class="event-desc">JR 山陽本線普通/快速，45–55 分鐘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">14:00</div><div class="event-title">倉敷美観地區</div><div class="event-desc">白壁土藏、柳並木道。從車站步行 12 分鐘</div><div class="event-tags"><span class="event-tag info">散步 1–1.5 小時</span></div></div>
+    <div class="event"><div class="event-time">15:30</div><div class="event-title">三越 Outlet 倉敷</div><div class="event-desc">JR 倉敷駅西口出來即達，與美観地區步行約 10–15 分。可逛 GAP、Coach、BEAMS 等品牌</div><div class="event-tags"><span class="event-tag cash">免稅</span></div></div>
+    <div class="event"><div class="event-time">17:00</div><div class="event-title">倉敷夕食 / 返回</div><div class="event-desc">美観地區咖啡館或餐廳用餐後，JR 返回新大阪</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+  </div>
+  <div class="day-footer"><span class="left">交通 · 全 Pass 涵蓋</span><span class="right">門票 + 餐費為主</span></div>
+  <div class="notice">若當天體力有限，可省略倉敷專注姬路城。</div>
+</section>
+
+<section id="d3" class="day">
+  <div class="day-head"><span class="day-num">D3</span><span class="day-sub">宮島 & 廣島</span><span class="day-desc">Pass 第 2 日 · 退潮 12:23</span></div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">07:00</div><div class="event-title">飯店早餐</div><div class="event-desc">吃飽再出發</div></div>
+    <div class="event"><div class="event-time">07:50</div><div class="event-title">新大阪 ⮕ 廣島</div><div class="event-desc">山陽新幹線のぞみ/みずほ，約 1 小時 25 分，09:15 抵達。Pass 可搭乘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">09:45</div><div class="event-title">廣島 ⮕ 宮島口</div><div class="event-desc">JR 山陽線，約 26 分</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">10:20</div><div class="event-title">渡輪 ⮕ 宮島</div><div class="event-desc">JR 西日本營運渡輪約 10 分鐘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">10:30</div><div class="event-title">嚴島神社（満潮中）</div><div class="event-desc">仍在満潮（05:54 295cm），神社與鳥居浮於海上，拍照效果佳</div><div class="event-tags"><span class="event-tag cash">¥300/人</span></div></div>
+    <div class="event"><div class="event-time">12:00</div><div class="event-title">🏝️ 走到大鳥居！</div><div class="event-desc">退潮 12:23（99cm），12:00 前後可步行至鳥居正下方。潮位 <100cm 約可維持 1 小時</div><div class="event-tags"><span class="event-tag info">5/26 退潮</span></div></div>
+    <div class="event"><div class="event-time">13:00</div><div class="event-title">宮島午餐</div><div class="event-desc">推薦ふじたや星鰻丼或牡蠣料理</div><div class="event-tags"><span class="event-tag food">約 ¥1,500–2,500/人</span></div></div>
+    <div class="event"><div class="event-time">14:30</div><div class="event-title">渡輪 ⮕ 宮島口 ⮕ 廣島</div><div class="event-desc">JR 山陽線返回廣島站，約 30 分鐘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">15:00</div><div class="event-title">和平紀念公園散步</div><div class="event-desc">平和記念資料館周邊庭院散步，戶外空間寬敞舒適</div></div>
+    <div class="event"><div class="event-time">17:00</div><div class="event-title">廣島 ⮕ 新大阪</div><div class="event-desc">山陽新幹線返回。建議搭 17:00–17:30 班次</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event muted"><div class="event-time">~19:00</div><div class="event-title">回到新大阪 · 晚餐</div></div>
+  </div>
+  <div class="day-footer"><span class="left">宮島優先 · 退潮 12:23（99cm）</span><span class="right">潮汐配合 · 可走到鳥居下</span></div>
+  <div class="notice">⚠️ 5/26 為長潮，僅一次明顯退潮（12:23）。先宮島後廣島，確保走到大鳥居。嚴島港實際退潮比廣島港早數分鐘。</div>
+</section>
+
+<section id="d4" class="day">
+  <div class="day-head"><span class="day-num">D4</span><span class="day-sub">宇治一日</span><span class="day-desc">Pass 第 3 日</span></div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">08:30</div><div class="event-title">飯店早餐</div><div class="event-desc">吃飽再出發</div></div>
+    <div class="event"><div class="event-time">09:00</div><div class="event-title">新大阪 ⮕ JR 宇治</div><div class="event-desc">JR 奈良線，經京都約 55 分，10:00 抵達</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">10:00</div><div class="event-title">中村藤吉本店</div><div class="event-desc">150 年曆史老店，限定抹茶甜點。建議先入座再散步</div><div class="event-tags"><span class="event-tag food">約 ¥800–1,200/人</span></div></div>
+    <div class="event"><div class="event-time">10:40</div><div class="event-title">宇治橋通商店街 & 平等院參道</div><div class="event-desc">伴手禮、抹茶点心、土產店林立。往平等院方向散步</div></div>
+    <div class="event"><div class="event-time">11:00</div><div class="event-title">平等院 & 鳳凰堂</div><div class="event-desc">世界遺產，10 元硬幣圖案。建議先入平等院再看鳳凰堂</div><div class="event-tags"><span class="event-tag cash">¥300/人</span></div></div>
+    <div class="event"><div class="event-time">12:30</div><div class="event-title">宇治橋通午餐</div><div class="event-desc">推薦：中村藤吉、伊藤久右衛門、或車站側的函館壽司</div><div class="event-tags"><span class="event-tag food">約 ¥1,000–1,500/人</span></div></div>
+    <div class="event"><div class="event-time">14:00</div><div class="event-title">宇治神社</div><div class="event-desc">供奉菟道稚郎皇子，境內寧靜</div></div>
+    <div class="event"><div class="event-time">14:30</div><div class="event-title">宇治上神社</div><div class="event-desc">日本最古老神社之一，世界遺產。抹茶口味御守聞名</div><div class="event-tags"><span class="event-tag info">世界遺產</span></div></div>
+    <div class="event"><div class="event-time">15:30</div><div class="event-title">宇治公園</div><div class="event-desc">依勢川畔賞櫻/賞楓勝地，散步放鬆</div><div class="event-tags"><span class="event-tag info">約 30 分</span></div></div>
+    <div class="event"><div class="event-time">16:00</div><div class="event-title">JR 宇治 ⮕ 新大阪</div><div class="event-desc">JR 奈良線返回，約 55 分，17:00 前後抵達</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event muted"><div class="event-time">~17:00</div><div class="event-title">回到新大阪飯店</div></div>
+  </div>
+  <div class="day-footer"><span class="left">宇治 · 抹茶 · 國際慢城</span><span class="right">約 ¥2,500–3,500/人</span></div>
+  <div class="notice">宇治觀光地圖：https://www.kyoto-uji-kankou.or.jp/images/2400map-cn-tw.pdf</div>
+</section>
+
+<section id="d5" class="day">
+  <div class="day-head"><span class="day-num">D5</span><span class="day-sub">神戶 & 明石大橋</span><span class="day-desc">Pass 最終日 · 移動日</span></div>
+  <div class="notice">今日退房，行李寄放新大阪飯店，輕裝出遊。順序：明石大橋 ⮕ 神戶市區</div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">07:00</div><div class="event-title">早餐 & 退房</div><div class="event-desc">07:45 前離開新大阪飯店，行李寄放櫃檯</div></div>
+    <div class="event"><div class="event-time">08:15</div><div class="event-title">新大阪 ⮕ 三宮</div><div class="event-desc">JR 神戶線新快速，31 分鐘直達，08:46 抵達</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">09:20</div><div class="event-title">三宮 ⮕ 舞子</div><div class="event-desc">JR 神戶線快速，約 22 分鐘</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">09:45</div><div class="event-title">舞子海上プロムナード</div><div class="event-desc">走進明石海峽大橋桁內！海上 47m 玻璃地板步道。步行至入口約 7–8 分，建議提早到</div><div class="event-tags"><span class="event-tag cash">平日 ¥250 / 假日 ¥300</span><span class="event-tag info">9:00–18:00</span></div></div>
+    <div class="event"><div class="event-time">11:00</div><div class="event-title">舞子公園 & 舊武藤山治邸</div><div class="event-desc">地面仰望明石海峽大橋全景</div></div>
+    <div class="event"><div class="event-time">11:30</div><div class="event-title">舞子 ⮕ 三宮</div><div class="event-desc">JR 神戶線返回，約 22 分鐘，12:00 前後抵達</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event"><div class="event-time">12:00</div><div class="event-title">北野異人館</div><div class="event-desc">風見雞館、萌黃館等洋風建築。沿北野坂漫步</div><div class="event-tags"><span class="event-tag cash">聯票約 ¥700/人</span></div></div>
+    <div class="event"><div class="event-time">13:30</div><div class="event-title">南京町午餐</div><div class="event-desc">神戶牛饅頭、棒餃子、鯛魚燒</div><div class="event-tags"><span class="event-tag food">約 ¥1,000–1,500/人</span></div></div>
+    <div class="event"><div class="event-time">15:30</div><div class="event-title">回新大阪拿行李</div><div class="event-desc">返回新大阪站，取行李後前往堺筋本町</div><div class="event-tags"><span class="event-tag pass">Pass 涵蓋</span></div></div>
+    <div class="event muted"><div class="event-time">~17:00</div><div class="event-title">check-in 堺筋本町飯店</div></div>
+    <div class="event"><div class="event-time">18:30</div><div class="event-title">晚餐（自由）</div></div>
+  </div>
+  <div class="day-footer"><span class="left">明石大橋 ⮕ 神戶市區</span><span class="right">約 ¥2,000–3,000/人</span></div>
+</section>
+
+<section id="d6" class="day">
+  <div class="day-head"><span class="day-num">D6</span><span class="day-sub">勝尾寺 & 大阪</span><span class="day-desc">無 JR Pass · ICOCA</span></div>
+  <div class="timeline">
+    <div class="event"><div class="event-time">08:00</div><div class="event-title">飯店早餐</div><div class="event-desc">09:00 前出門</div></div>
+    <div class="event"><div class="event-time">09:00</div><div class="event-title">堺筋本町 ⮕ 千里中央</div><div class="event-desc">Osaka Metro 中央線直達，約 35 分</div><div class="event-tags"><span class="event-tag cash">地鐵約 ¥430</span></div></div>
+    <div class="event"><div class="event-time">09:40</div><div class="event-title">轉乘巴士往勝尾寺</div><div class="event-desc">阪急バス 29 號「勝尾寺線」，約 45–60 分（塞車可達 1 小時）</div><div class="event-tags"><span class="event-tag cash">巴士約 ¥800–1,300</span></div></div>
+    <div class="event"><div class="event-time">10:30</div><div class="event-title">勝尾寺</div><div class="event-desc">「勝運與達摩」古剎，滿山達摩像為特色。境內散步約 2 小時</div><div class="event-tags"><span class="event-tag cash">入山料 ¥400/人</span></div></div>
+    <div class="event"><div class="event-time">12:30</div><div class="event-title">返回大阪市區</div><div class="event-desc">千里中央 ⮕ 難波/心齋橋</div></div>
+    <div class="event"><div class="event-time">14:00</div><div class="event-title">大阪自由活動</div><div class="event-desc">心齋橋商店街、道頓堀、難波 Parks 逛街採買</div></div>
+    <div class="event"><div class="event-time">18:30</div><div class="event-title">道頓堀晚餐</div><div class="event-desc">大阪燒、串炸或壽喜燒</div></div>
+  </div>
+  <div class="day-footer"><span class="left">勝尾寺 + 逛街</span><span class="right">約 ¥1,500–2,000/人</span></div>
+  <div class="notice">勝尾寺用不到 Pass，放 D6 剛好省一天交通券。</div>
+</section>
+
+<section id="d7" class="day">
+  <div class="day-head"><span class="day-num">D7</span><span class="day-sub">返程</span><span class="day-desc">CX565 16:15</span></div>
+<div class="timeline">
+    <div class="event"><div class="event-time">08:00</div><div class="event-title">早餐 & 退房</div><div class="event-desc">確認無遺漏</div></div>
+    <div class="event"><div class="event-time">09:00</div><div class="event-title">南海電鐵 ⮕ 臨空城</div><div class="event-desc">堺筋本校直達，約 50 分</div><div class="event-tags"><span class="event-tag cash">南海 ¥740</span></div></div>
+    <div class="event"><div class="event-time">10:00</div><div class="event-title">臨空城 Outlets</div><div class="event-desc">Rinku Premium Outlets</div></div>
+    <div class="event"><div class="event-time">~12:00</div><div class="event-title">步行至臨空城站</div></div>
+    <div class="event"><div class="event-time">12:10</div><div class="event-title">JR 臨空城 ⮕ KIX</div><div class="event-desc">約 6 分</div><div class="event-tags"><span class="event-tag cash">JR ¥320</span></div></div>
+    <div class="event"><div class="event-time">12:20</div><div class="event-title">抵達關西機場</div><div class="event-desc">第 1 航廈</div></div>
+    <div class="event muted"><div class="event-time">15:15</div><div class="event-title" style="color:#E89080">報到櫃檯關閉</div><div class="event-tags"><span class="event-tag danger">Deadline</span></div></div>
+    <div class="event"><div class="event-time">16:15</div><div class="event-title" style="font-weight:600">CX565 起飛</div><div class="event-desc">關西 ⮕ 台灣</div></div>
+  </div>
+  <div class="day-footer"><span class="left">交通費</span><span class="right">約 ¥1,100/人</span></div>
+  <div class="notice">KIX 免稅店熱門伴手禮傍晚易缺貨，建議提早買。</div>
+</section>
+
+</div>
+
+<div class="footer">
+  關西七日 · 2026.5.24–5.30 · ⚠ 行程時間僅供參考，請以當日現場時刻為準
+</div>
+
+<script>
+function goDay(id,btn){
+  const days = document.querySelectorAll('.day');
+  const btns = document.querySelectorAll('.tab-btn');
+  days.forEach(d=>{d.classList.remove('active');d.style.display='none'});
+  btns.forEach(t=>t.classList.remove('active'));
+  const target = document.getElementById(id);
+  target.style.display='block';
+  void target.offsetWidth;
+  target.classList.add('active');
+  btn.classList.add('active');
+  btn.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
+function toggleOverview(){
+  document.getElementById('overviewCard').classList.toggle('collapsed');
+}
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  fetch(location.href).then(r=>r.text()).then(html=>{
+    const blob=new Blob([html],{type:'text/html'});
+    const code=`self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))))`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([code],{type:'application/javascript'}))).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
